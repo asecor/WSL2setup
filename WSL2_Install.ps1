@@ -57,6 +57,12 @@ function Select-Distro () {
             'winpe' = 'ubuntu1804.exe'
             'installed' = $false
         }, [PSCustomObject]@{
+            'Name' = 'Ubuntu 20.04'
+            'URI' = 'https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-amd64-wsl.rootfs.tar.gz'
+            'AppxName' = 'CanonicalGroupLimited.Ubuntu18.04onWindows'
+            'winpe' = 'ubuntu2004.tar.gz'
+            'installed' = $false        
+        }, [PSCustomObject]@{
             'Name' = 'Ubuntu 16.04'
             'URI' = 'https://aka.ms/wsl-ubuntu-1604'
             'AppxName' = 'CanonicalGroupLimited.Ubuntu16.04onWindows'
@@ -119,6 +125,16 @@ function Select-Distro () {
 function Install-Distro ($distro) {
     if ((Get-AppxPackage).Name -Contains $distro.AppxName) {
         Write-Host(" ...Found an existing " + $distro.Name + " install")
+        #A manual way of downloading and installing 20.04
+    }elseif ($distro.Name -eq "Ubuntu 20.04") {
+        $Filename = "$(Split-Path $distro.URI -Leaf)"
+        $ProgressPreference = 'SilentlyContinue'
+        Write-Host(" ...Downloading " + $distro.Name + ".")
+        Invoke-WebRequest -Uri $distro.URI -OutFile $Filename -UseBasicParsing
+        Write-Host(" ...Beginning " + $distro.Name + " install.")
+        $distroinstall = "$env:LOCALAPPDATA\lxss"
+        wsl.exe --import Ubuntu_2004 $distroinstall ubuntu-20.04-server-cloudimg-amd64-wsl.rootfs.tar.gz
+        Start-Sleep -Seconds 5
     } else {
         $Filename = "$(Split-Path $distro.URI -Leaf).appx"
         $ProgressPreference = 'SilentlyContinue'
